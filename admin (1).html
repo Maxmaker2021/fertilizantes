@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campo Simple Fertilizante — Panel Cupeador</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f3f4f6; color: #111; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+
+/* HEADER */
+.header {
+  background: #2C703C; padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.logo { width: 32px; height: 32px; background: rgba(255,255,255,.15); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.brand { color: #fff; font-size: 15px; font-weight: 600; }
+.brand-sub { color: rgba(255,255,255,.65); font-size: 11px; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+.sync { font-size: 11px; color: rgba(255,255,255,.7); }
+.sync.ok    { color: #86efac; }
+.sync.error { color: #fca5a5; }
+
+/* TABS */
+.tabs { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 0 24px; display: flex; gap: 0; overflow-x: auto; }
+.tab { padding: 12px 18px; font-size: 13px; font-weight: 500; color: #6b7280; cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; white-space: nowrap; }
+.tab:hover { color: #2C703C; }
+.tab.active { color: #2C703C; border-bottom-color: #2C703C; font-weight: 600; }
+.tab-badge { display: inline-block; background: #ef4444; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 99px; margin-left: 5px; }
+.tab-badge.green { background: #2C703C; }
+
+/* PANELS */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* STATS */
+.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; padding: 20px 24px 0; }
+.stat { background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid #e5e7eb; }
+.stat-val { font-size: 24px; font-weight: 700; }
+.stat-val.green  { color: #2C703C; }
+.stat-val.red    { color: #dc2626; }
+.stat-val.amber  { color: #d97706; }
+.stat-val.blue   { color: #1d4ed8; }
+.stat-label { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+/* TOOLBAR */
+.toolbar { padding: 16px 24px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.search-wrap { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; }
+.search-wrap input { border: none; background: transparent; font-size: 13px; color: #111; width: 100%; outline: none; }
+.search-wrap input::placeholder { color: #9ca3af; }
+select { background: #fff; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #111; outline: none; cursor: pointer; font-family: inherit; }
+.btn { padding: 8px 14px; border-radius: 8px; border: none; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .15s; display: inline-flex; align-items: center; gap: 5px; }
+.btn-primary   { background: #2C703C; color: #fff; }
+.btn-primary:hover { background: #245f32; }
+.btn-secondary { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+.btn-secondary:hover { background: #f9fafb; }
+.btn-wa        { background: #25D366; color: #fff; }
+.btn-wa:hover  { background: #1ebe5a; }
+.btn-danger    { background: #fff; color: #ef4444; border: 1px solid #fecaca; }
+.btn:disabled  { opacity: .45; cursor: default; }
+
+/* TABLE */
+.table-wrap { padding: 0 24px 24px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #e5e7eb; font-size: 13px; }
+thead { background: #f9fafb; }
+th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+td { padding: 11px 14px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f9fafb; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.action-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; font-size: 11px; cursor: pointer; color: #374151; font-family: inherit; transition: all .1s; white-space: nowrap; }
+.action-btn:hover { background: #f3f4f6; }
+.action-btn.wa { border-color: #22c55e40; color: #16a34a; background: #f0fdf4; }
+.action-btn.wa:hover { background: #dcfce7; }
+.action-btn.red { color: #ef4444; border-color: #fecaca; }
+
+/* BADGES */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-ok      { background: #dcfce7; color: #166534; }
+.badge-alerta  { background: #fef9c3; color: #854d0e; }
+.badge-critico { background: #fee2e2; color: #b91c1c; }
+.badge-vencido { background: #fee2e2; color: #b91c1c; }
+code { background: #f0f2f5; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #1d4ed8; font-family: monospace; }
+
+/* MODAL */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+.overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 14px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; }
+.modal-header { padding: 18px 20px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 15px; font-weight: 600; }
+.modal-close { width: 28px; height: 28px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; color: #6b7280; font-weight: 500; }
+.field input, .field select, .field textarea { padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 7px; font-size: 13px; color: #111; outline: none; font-family: inherit; width: 100%; }
+.field input:focus, .field select:focus { border-color: #2C703C; box-shadow: 0 0 0 2px rgba(44,112,60,.12); }
+.field textarea { resize: vertical; min-height: 60px; }
+.modal-footer { padding: 14px 20px; border-top: 1px solid #e5e7eb; display: flex; gap: 8px; justify-content: flex-end; }
+.hint { font-size: 11px; color: #9ca3af; margin-top: 3px; }
+
+/* ALERT SECTION */
+.alert-section { margin: 20px 24px 0; border-radius: 10px; border: 1px solid; overflow: hidden; margin-bottom: 14px; }
+.alert-section.vencido { border-color: #fca5a5; }
+.alert-section.critico { border-color: #fca5a5; }
+.alert-section.alerta  { border-color: #fde047; }
+.alert-section-header { padding: 10px 16px; font-size: 13px; font-weight: 600; }
+.alert-section.vencido .alert-section-header { background: #fff5f5; color: #b91c1c; }
+.alert-section.critico .alert-section-header { background: #fff5f5; color: #b91c1c; }
+.alert-section.alerta  .alert-section-header { background: #fffef0; color: #854d0e; }
+.alert-row { padding: 12px 16px; border-top: 1px solid #f3f4f6; background: #fff; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.alert-row:hover { background: #f9fafb; }
+
+/* URL preview */
+.url-preview { background: #f3f4f6; border-radius: 8px; padding: 10px 12px; font-size: 11px; color: #1d4ed8; font-family: monospace; word-break: break-all; }
+
+/* COLOR SWATCHES */
+.swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+.swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: border .1s; }
+.swatch.selected { border-color: #111; }
+
+/* RETIRO SUCCESS */
+.retiro-success { background: #f0fdf4; border: 2px solid #c6f6d5; border-radius: 12px; padding: 20px; margin: 0 24px 18px; }
+
+/* IMPORT PREVIEW */
+.import-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 12px; }
+.import-stat { border-radius: 8px; padding: 10px; text-align: center; }
+.import-stat-val { font-size: 20px; font-weight: 700; }
+.import-stat-lbl { font-size: 11px; margin-top: 2px; }
+
+.info-box  { background: #f0fdf4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #276749; }
+.warn-box  { background: #fef9c3; border: 1px solid #fde047; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #854d0e; }
+
+.empty       { text-align: center; padding: 48px; color: #9ca3af; font-size: 13px; }
+.loading-row { text-align: center; padding: 40px; color: #9ca3af; font-size: 13px; }
+
+.toast { position: fixed; bottom: 24px; right: 24px; background: #111; color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 13px; z-index: 300; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 320px; }
+.toast.show { opacity: 1; }
+
+@media (max-width: 768px) {
+  .stats { grid-template-columns: repeat(2,1fr); }
+  .toolbar, .table-wrap, .stats { padding-left: 16px; padding-right: 16px; }
+  .tabs { padding: 0 16px; }
+  .alert-section { margin-left: 16px; margin-right: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">🌱</div>
+    <div>
+      <div class="brand">Campo Simple Fertilizante</div>
+      <div class="brand-sub">Panel Cupeador</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="sync" id="syncStatus">Cargando…</span>
+    <button class="btn btn-secondary" style="font-size:12px;padding:6px 12px;background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)" onclick="cargarDatos()">↻ Actualizar</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('alertas')">🔔 Alertas <span class="tab-badge" id="badgeAlertas" style="display:none"></span></div>
+  <div class="tab" onclick="showTab('stock')">📦 Stock</div>
+  <div class="tab" onclick="showTab('enviar')">📤 Enviar formulario</div>
+  <div class="tab" onclick="showTab('pedidos')">📋 Pedidos <span class="tab-badge green" id="badgePedidos" style="display:none"></span></div>
+  <div class="tab" onclick="showTab('retiro')">✅ Registrar retiro</div>
+  <div class="tab" onclick="showTab('config')">⚙️ Configuración</div>
+</div>
+
+<!-- ═══════════════════════ ALERTAS ═══════════════════════════ -->
+<div class="panel active" id="panel-alertas">
+  <div id="alertasContent" style="padding-bottom:24px">
+    <div class="loading-row">Cargando…</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ STOCK ════════════════════════════ -->
+<div class="panel" id="panel-stock">
+  <div class="stats">
+    <div class="stat"><div class="stat-val green" id="stTotalDisp">—</div><div class="stat-label">Toneladas disponibles</div></div>
+    <div class="stat"><div class="stat-val" id="stPosiciones">—</div><div class="stat-label">Posiciones activas</div></div>
+    <div class="stat"><div class="stat-val amber" id="stAlertas">—</div><div class="stat-label">Con alertas</div></div>
+    <div class="stat"><div class="stat-val blue" id="stEmpresas">—</div><div class="stat-label">Empresas</div></div>
+  </div>
+  <div class="toolbar">
+    <div class="search-wrap"><span>🔍</span><input type="text" id="searchStock" placeholder="Buscar empresa, contrato, producto…" oninput="renderStock()"></div>
+    <select id="filtEmpresa" onchange="renderStock()"><option value="">Todas las empresas</option></select>
+    <select id="filtPuerto" onchange="renderStock()"><option value="">Todos los puertos</option></select>
+    <select id="filtProducto" onchange="renderStock()"><option value="">Todos los productos</option></select>
+    <button class="btn btn-secondary" onclick="exportCSV()">↓ CSV</button>
+    <label class="btn btn-secondary" style="cursor:pointer">⬆ Importar CSV<input type="file" accept=".csv" style="display:none" onchange="importarCSV(event)"></label>
+    <button class="btn btn-primary" onclick="abrirModalStock()">+ Agregar</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Empresa</th><th>Contrato</th><th>Producto</th><th>Puerto</th><th>Posición</th><th>F. Negocio</th><th>F. Retiro</th><th>Total</th><th>Retirado</th><th>Disponible</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody id="tablaStock"><tr><td colspan="12" class="loading-row">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════ ENVIAR ════════════════════════════ -->
+<div class="panel" id="panel-enviar">
+  <div style="padding: 20px 24px; max-width: 720px;">
+    <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px;margin-bottom:18px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #f3f4f6;">Generar formulario de retiro para el productor</div>
+
+      <div class="field-row" style="margin-bottom:14px;">
+        <div class="field">
+          <label>Nombre del productor *</label>
+          <input type="text" id="envNombre" placeholder="Juan Pérez">
+        </div>
+        <div class="field">
+          <label>Filtrar por empresa</label>
+          <select id="envFiltEmp" onchange="poblarEnviarStock()"><option value="">Todas</option></select>
+        </div>
+      </div>
+      <div class="field-row" style="margin-bottom:14px;">
+        <div class="field">
+          <label>Filtrar por puerto</label>
+          <select id="envFiltPuerto" onchange="poblarEnviarStock()"><option value="">Todos</option></select>
+        </div>
+        <div class="field">
+          <label>Posición de stock (FIFO) *</label>
+          <select id="envStock"><option value="">— Seleccionar —</option></select>
+        </div>
+      </div>
+
+      <div id="envPreview" style="display:none;background:#f3f4f6;border-radius:8px;padding:12px;margin-bottom:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;"></div>
+
+      <div class="hint" style="margin-bottom:14px;">Stock ordenado por fecha de negocio más antigua (FIFO). Puerto y toneladas se pre-cargan en el formulario del productor.</div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="generarURL()">Generar URL</button>
+        <button class="btn btn-wa" onclick="enviarWAFormulario()">💬 Enviar por WhatsApp</button>
+      </div>
+
+      <div id="urlBox" style="display:none;margin-top:16px;background:#f0fdf4;border:1px solid #c6f6d5;border-radius:10px;padding:14px 16px;">
+        <div style="font-size:12px;font-weight:600;color:#2C703C;margin-bottom:8px;">✓ URL lista para compartir:</div>
+        <div class="url-preview" id="urlGenerated"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" style="font-size:12px" onclick="copiarURL()">Copiar URL</button>
+          <button class="btn btn-secondary" style="font-size:12px" onclick="window.open(document.getElementById('urlGenerated').textContent,'_blank')">Ver formulario</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ PEDIDOS ═══════════════════════════ -->
+<div class="panel" id="panel-pedidos">
+  <div class="toolbar">
+    <div class="search-wrap"><span>🔍</span><input type="text" id="searchPedidos" placeholder="Buscar productor, patente, chofer…" oninput="renderPedidos()"></div>
+    <button class="btn btn-secondary" onclick="exportCSVPedidos()">↓ Exportar</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>Stock</th><th>Productor</th><th>Toneladas</th><th>Retiro</th><th>Camión</th><th>Transportista</th><th>Chofer</th><th>DNI</th><th>Fecha pedido</th></tr></thead>
+      <tbody id="tablaPedidos"><tr><td colspan="10" class="loading-row">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════ RETIRO ════════════════════════════ -->
+<div class="panel" id="panel-retiro">
+  <div style="padding: 20px 24px; max-width: 680px;">
+    <div id="retiroSuccess" style="display:none" class="retiro-success">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:#e8f5e9;border:2px solid #4caf50;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">✓</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;">Retiro registrado</div>
+          <div style="font-size:12px;color:#6b7280;" id="retiroDescripcion"></div>
+        </div>
+      </div>
+      <div id="retiroSaldoBox" style="background:#fff;border-radius:8px;padding:12px;margin-bottom:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-wa" id="btnConfirmWA">💬 Enviar confirmación por WA</button>
+        <button class="btn btn-secondary" id="btnVerSaldo">Ver tarjeta de saldo</button>
+        <button class="btn btn-secondary" onclick="resetRetiro()">Registrar otro retiro</button>
+      </div>
+    </div>
+
+    <div id="retiroForm" style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #f3f4f6;">Registrar retiro de fertilizante</div>
+      <div class="field-row" style="margin-bottom:14px;">
+        <div class="field">
+          <label>Nombre del productor *</label>
+          <input type="text" id="retNombre" placeholder="Nombre del productor">
+        </div>
+        <div class="field">
+          <label>Posición de stock *</label>
+          <select id="retStock"><option value="">— Seleccionar —</option></select>
+        </div>
+      </div>
+      <div id="retPreview" style="display:none;background:#f3f4f6;border-radius:8px;padding:12px;margin-bottom:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;"></div>
+      <div class="field" style="max-width:280px;margin-bottom:14px;">
+        <label id="retTonLabel">Toneladas a retirar *</label>
+        <input type="number" id="retToneladas" placeholder="0" min="1">
+      </div>
+      <button class="btn btn-primary" onclick="registrarRetiro()">Registrar retiro</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ CONFIG ════════════════════════════ -->
+<div class="panel" id="panel-config">
+  <div style="padding: 20px 24px; max-width: 680px;">
+    <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px;margin-bottom:18px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #f3f4f6;">Empresas proveedoras de fertilizante</div>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:16px;">Las empresas disponibles para cargar stock. Se pueden agregar nuevas proveedoras en cualquier momento.</div>
+
+      <div style="background:#f9fafb;border-radius:10px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:12px;">Agregar empresa</div>
+        <div class="field-row" style="margin-bottom:12px;">
+          <div class="field"><label>Nombre *</label><input type="text" id="empNombre" placeholder="Ej: Bunge, CHS, Amaggi…"></div>
+          <div class="field">
+            <label>Color identificador</label>
+            <div class="swatches" id="swatches"></div>
+            <input type="hidden" id="empColor" value="#1565C0">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="agregarEmpresa()">+ Agregar empresa</button>
+      </div>
+
+      <div id="listaEmpresas"></div>
+    </div>
+
+    <div class="warn-box" style="margin-bottom:18px;">
+      <strong>⚠️ Asignación FIFO:</strong> El sistema asigna siempre el contrato con la fecha de negocio más antigua por empresa y puerto. Esto garantiza que los contratos más viejos se consuman primero.
+    </div>
+
+    <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f3f4f6;">Configuración del sistema</div>
+      <div class="field" style="margin-bottom:14px;">
+        <label>Número WhatsApp del cupeador (con código de país)</label>
+        <input type="text" id="configWA" placeholder="5491112345678">
+        <div class="hint">Se usa para recibir notificaciones de nuevos pedidos</div>
+      </div>
+      <div class="field" style="margin-bottom:14px;">
+        <label>URL base del sistema (donde están los HTML)</label>
+        <input type="text" id="configBaseURL" placeholder="https://tuusuario.github.io/fertinet/">
+        <div class="hint">URL de GitHub Pages donde está publicado el proyecto</div>
+      </div>
+      <button class="btn btn-primary" onclick="guardarConfig()">Guardar configuración</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL STOCK -->
+<div class="overlay" id="modalStock" onclick="cerrarSiFuera(event,'modalStock')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalStockTitle">Nueva posición de stock</div>
+      <button class="modal-close" onclick="cerrarModal('modalStock')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field">
+          <label>Empresa proveedora *</label>
+          <select id="fEmpresa"><option value="">— Seleccionar —</option></select>
+        </div>
+        <div class="field"><label>N° Contrato *</label><input type="text" id="fContrato" placeholder="Ej: BU-2024-001"></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Producto *</label>
+          <select id="fProducto">
+            <option>Urea</option><option>MAP</option><option>DAP</option>
+            <option>SFT</option><option>Potasio</option><option>Yara Mila</option><option>Nitrato de Amonio</option>
+          </select>
+        </div>
+        <div class="field"><label>Toneladas *</label><input type="number" id="fToneladas" placeholder="0" min="1"></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Puerto *</label>
+          <select id="fPuerto">
+            <option>Rosario</option><option>Bahía Blanca</option><option>San Lorenzo</option>
+            <option>Villa Constitución</option><option>Quequén</option>
+          </select>
+        </div>
+        <div class="field"><label>Posición</label><input type="text" id="fPosicion" placeholder="Ej: P-A1"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Fecha de Negocio *</label><input type="date" id="fFechaNegocio"></div>
+        <div class="field"><label>Fecha de Retiro *</label><input type="date" id="fFechaRetiro"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modalStock')">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardarStock" onclick="guardarStock()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL IMPORT PREVIEW -->
+<div class="overlay" id="modalImport" onclick="cerrarSiFuera(event,'modalImport')">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-header">
+      <div class="modal-title">Importar stock — Vista previa</div>
+      <button class="modal-close" onclick="cerrarModal('modalImport')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="import-stats" id="importStats"></div>
+      <div style="max-height:300px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px;font-size:12px;" id="importPreview"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modalImport')">Cancelar</button>
+      <button class="btn btn-primary" id="btnConfirmImport" onclick="confirmarImport()">Confirmar importación</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────
+const SCRIPT_URL = "TU_APPS_SCRIPT_URL_AQUI"; // ← pegá tu URL aquí
+const PUERTOS    = ["Rosario","Bahía Blanca","San Lorenzo","Villa Constitución","Quequén"];
+const PALETA     = ["#1565C0","#6A1B9A","#E65100","#00695C","#AD1457","#4527A0","#0277BD","#2E7D32","#558B2F","#6D4C41"];
+
+// ─── State ────────────────────────────────────────────────────
+let ST = { stock:[], pedidos:[], retiros:[], empresas:[] };
+let importBuffer = [];
+let retiroDone   = null;
+
+// ─── Config localStorage ──────────────────────────────────────
+function getCfg()      { try{ return JSON.parse(localStorage.getItem("csf_config")||"{}"); }catch{ return {}; } }
+function saveCfg(obj)  { localStorage.setItem("csf_config", JSON.stringify({...getCfg(),...obj})); }
+function getWA()       { return getCfg().wa || "5491112345678"; }
+function getBaseURL()  { return getCfg().baseURL || (window.location.href.replace("admin.html","").replace(/\/$/, "")+"/"); }
+
+// ─── Utils ────────────────────────────────────────────────────
+const fmt      = d => !d?"—":new Date(d+"T12:00:00").toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric"});
+const fmtLong  = d => !d?"—":new Date(d+"T12:00:00").toLocaleDateString("es-AR",{day:"2-digit",month:"long",year:"numeric"});
+const diasHasta= f => Math.ceil((new Date(f+"T12:00:00")-new Date())/86400000);
+const alertN   = f => { const d=diasHasta(f); return d<0?"vencido":d<=15?"critico":d<=30?"alerta":"ok"; };
+const saldo    = s => Number(s.toneladas)-Number(s.retirado||0);
+
+function alertBadge(f, full) {
+  const n=alertN(f), d=diasHasta(f);
+  const cfg={
+    vencido:{cls:"badge-vencido",ico:"🚨",lbl:full?`Vencido (${Math.abs(d)}d)`:"Venc."},
+    critico:{cls:"badge-critico",ico:"🔴",lbl:full?`Crítico (${d}d)`:d+"d"},
+    alerta: {cls:"badge-alerta", ico:"⚠️",lbl:full?`Alerta (${d}d)`:d+"d"},
+    ok:     {cls:"badge-ok",     ico:"✅",lbl:full?`OK (${d}d)`:d+"d"},
+  }[n];
+  return `<span class="badge ${cfg.cls}">${cfg.ico} ${cfg.lbl}</span>`;
+}
+
+function empColor(nombre) {
+  const e=ST.empresas.find(x=>x.nombre===nombre);
+  return e?e.color:"#6b7280";
+}
+function empBadge(nombre) {
+  const c=empColor(nombre);
+  return `<span style="font-size:11px;font-weight:700;background:${c}18;color:${c};padding:2px 8px;border-radius:4px;border:1px solid ${c}33">${nombre}</span>`;
+}
+
+function toast(msg, dur=2800) {
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),dur);
+}
+function setSyncStatus(msg, cls="") {
+  const el=document.getElementById("syncStatus");
+  el.textContent=msg; el.className="sync "+cls;
+}
+
+// ─── API ──────────────────────────────────────────────────────
+async function apiGet(params="") {
+  const res=await fetch(SCRIPT_URL+"?action=getAll"+params);
+  return res.json();
+}
+async function apiPost(body) {
+  await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+}
+
+// ─── LOAD ─────────────────────────────────────────────────────
+const DEMO_DATA = {
+  empresas: [
+    {id:"E1",nombre:"Bunge",  color:"#1565C0"},
+    {id:"E2",nombre:"CHS",    color:"#6A1B9A"},
+    {id:"E3",nombre:"Amaggi", color:"#E65100"},
+    {id:"E4",nombre:"PAS",    color:"#00695C"},
+    {id:"E5",nombre:"LDC",    color:"#AD1457"},
+  ],
+  stock: [
+    {id:"S001",empresa:"Bunge",  contrato:"BU-2024-001",producto:"Urea",toneladas:"800", puerto:"Rosario",      posicion:"P-A1",fechaNegocio:"2024-01-10",fechaRetiro:"2026-06-10",retirado:"120"},
+    {id:"S002",empresa:"Bunge",  contrato:"BU-2024-002",producto:"MAP", toneladas:"400", puerto:"Bahía Blanca",  posicion:"P-B3",fechaNegocio:"2024-02-15",fechaRetiro:"2026-07-15",retirado:"0"},
+    {id:"S003",empresa:"CHS",    contrato:"CHS-2024-01",producto:"Urea",toneladas:"600", puerto:"Rosario",      posicion:"P-C2",fechaNegocio:"2024-01-05",fechaRetiro:"2026-05-28",retirado:"200"},
+    {id:"S004",empresa:"Amaggi", contrato:"AM-2023-008",producto:"Urea",toneladas:"1000",puerto:"Rosario",      posicion:"P-E4",fechaNegocio:"2023-12-01",fechaRetiro:"2026-05-15",retirado:"500"},
+    {id:"S005",empresa:"PAS",    contrato:"PAS-2024-01",producto:"SFT", toneladas:"350", puerto:"Quequén",      posicion:"P-G1",fechaNegocio:"2024-02-28",fechaRetiro:"2026-06-01",retirado:"50"},
+    {id:"S006",empresa:"LDC",    contrato:"LDC-2024-01",producto:"DAP", toneladas:"450", puerto:"San Lorenzo",  posicion:"P-H3",fechaNegocio:"2024-01-20",fechaRetiro:"2026-05-20",retirado:"0"},
+  ],
+  pedidos: [],
+  retiros: [],
+};
+
+async function cargarDatos() {
+  setSyncStatus("Sincronizando…","");
+  const esDemo = SCRIPT_URL.includes("TU_APPS_SCRIPT");
+  try {
+    if (esDemo) throw new Error("demo");
+    const data=await apiGet();
+    if(data.ok===false) throw new Error(data.error);
+    ST.stock    = data.stock    || [];
+    ST.pedidos  = data.pedidos  || [];
+    ST.retiros  = data.retiros  || [];
+    ST.empresas = data.empresas || [];
+    setSyncStatus("✓ Sincronizado","ok");
+  } catch(e) {
+    if (e.message === "demo" || SCRIPT_URL.includes("TU_APPS_SCRIPT")) {
+      ST.stock    = DEMO_DATA.stock;
+      ST.empresas = DEMO_DATA.empresas;
+      ST.pedidos  = [];
+      ST.retiros  = [];
+      setSyncStatus("⚡ Modo demo (sin Apps Script)","ok");
+    } else {
+      setSyncStatus("Sin conexión — mostrando último estado","error");
+    }
+  }
+  poblarFiltros();
+  renderAlertas();
+  renderStock();
+  renderPedidos();
+  poblarRetiroStock();
+  poblarEnviarStock();
+  renderEmpresas();
+  renderSwatches();
+  // Cargar config guardada
+  const cfg=getCfg();
+  if(cfg.wa) document.getElementById("configWA").value=cfg.wa;
+  if(cfg.baseURL) document.getElementById("configBaseURL").value=cfg.baseURL;
+}
+
+// ─── TABS ─────────────────────────────────────────────────────
+function showTab(tab) {
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  const tabs=["alertas","stock","enviar","pedidos","retiro","config"];
+  document.querySelectorAll(".tab")[tabs.indexOf(tab)]?.classList.add("active");
+  document.getElementById("panel-"+tab)?.classList.add("active");
+}
+
+// ─── ALERTAS ──────────────────────────────────────────────────
+function renderAlertas() {
+  const alertas = ST.stock
+    .filter(s => { const n=alertN(s.fechaRetiro); return n!=="ok" && saldo(s)>0; })
+    .sort((a,b) => new Date(a.fechaRetiro)-new Date(b.fechaRetiro));
+
+  const badge=document.getElementById("badgeAlertas");
+  badge.textContent=alertas.length;
+  badge.style.display=alertas.length?"":"none";
+
+  if(!alertas.length) {
+    document.getElementById("alertasContent").innerHTML=`
+      <div style="text-align:center;padding:60px 24px;color:#9ca3af;">
+        <div style="font-size:40px;margin-bottom:12px;">✅</div>
+        <div style="font-size:14px;font-weight:600;">Sin alertas activas</div>
+        <div style="font-size:12px;margin-top:4px;">Todos los stocks están vigentes</div>
+      </div>`;
+    return;
+  }
+
+  const grupos={vencido:[],critico:[],alerta:[]};
+  alertas.forEach(s=>grupos[alertN(s.fechaRetiro)]?.push(s));
+
+  const secCfg={
+    vencido:{label:"🚨 Vencidos — acción urgente inmediata",cls:"vencido"},
+    critico:{label:"🔴 Críticos — vencen en menos de 15 días",cls:"critico"},
+    alerta: {label:"⚠️ Alertas — vencen en menos de 30 días", cls:"alerta"},
+  };
+
+  let html=`<div style="padding:16px 24px 0;display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
+    ${["vencido","critico","alerta"].map(n=>`
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:20px;">${secCfg[n].label.slice(0,2)}</span>
+        <div><div style="font-size:20px;font-weight:800;color:${n==="alerta"?"#b45309":"#b91c1c"}">${grupos[n].length}</div>
+        <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.4px">${n==="vencido"?"Vencidos":n==="critico"?"Críticos":"Alertas"}</div></div>
+      </div>`).join("")}
+    <div style="margin-left:auto;font-size:11px;color:#9ca3af;">Alertas calculadas automáticamente. El operador solo aprueba el envío.</div>
+  </div>`;
+
+  ["vencido","critico","alerta"].forEach(nivel=>{
+    if(!grupos[nivel].length) return;
+    html+=`<div class="alert-section ${secCfg[nivel].cls}" style="margin-top:14px;">
+      <div class="alert-section-header">${secCfg[nivel].label}</div>`;
+    grupos[nivel].forEach(s=>{
+      const d=diasHasta(s.fechaRetiro);
+      html+=`<div class="alert-row">
+        <div style="flex:1;min-width:220px;">
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px;">
+            ${empBadge(s.empresa)}
+            <span class="badge" style="background:#dbeafe;color:#1d4ed8;">${s.producto}</span>
+            <span class="badge" style="background:#f3f4f6;color:#374151;">${s.puerto}</span>
+            <code>${s.contrato}</code>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,auto);gap:0 16px;font-size:12px;color:#6b7280;">
+            <span>Saldo: <strong style="color:#2C703C;">${saldo(s).toLocaleString()} t</strong></span>
+            <span>Vence: <strong style="color:${nivel==="alerta"?"#b45309":"#b91c1c"}">${fmt(s.fechaRetiro)}</strong></span>
+            <span>${d<0?`Vencido hace ${Math.abs(d)}d`:`${d} días restantes`}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" placeholder="Nombre productor…" id="alertNom_${s.id}" style="border:1px solid #d1d5db;border-radius:7px;padding:6px 10px;font-size:12px;width:180px;font-family:inherit;outline:none;">
+          <button class="btn btn-wa" style="font-size:12px;padding:7px 12px;" onclick="enviarRecordatorio('${s.id}')">💬 Recordatorio</button>
+          <button class="btn btn-secondary" style="font-size:12px;padding:7px 10px;" onclick="window.open('${getBaseURL()}saldo.html?s=${s.id}','_blank')">Ver saldo</button>
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+
+  document.getElementById("alertasContent").innerHTML=html;
+}
+
+function enviarRecordatorio(stockId) {
+  const s=ST.stock.find(x=>x.id===stockId);
+  if(!s) return;
+  const nombre=document.getElementById("alertNom_"+stockId)?.value?.trim();
+  if(!nombre){toast("Ingresá el nombre del productor primero");return;}
+  const sal=saldo(s);
+  const d=diasHasta(s.fechaRetiro);
+  const url=getBaseURL()+"form.html?s="+stockId+"&prod="+encodeURIComponent(nombre);
+  const saldoURL=getBaseURL()+"saldo.html?s="+stockId;
+  const msg=encodeURIComponent(
+`⏰ *Recordatorio · Campo Simple Fertilizante*
+
+Hola *${nombre}*, te recordamos que tenés fertilizante pendiente de retiro:
+
+📦 *${s.producto}* — ${sal.toLocaleString()} t
+🚢 *Puerto:* ${s.puerto}
+⚠️ *Vence el:* ${fmtLong(s.fechaRetiro)} (${d<0?`vencido hace ${Math.abs(d)} días`:`${d} días`})
+
+👇 Gestioná tu retiro:
+${url}
+
+📊 Ver tu saldo: ${saldoURL}
+
+_Campo Simple Fertilizante_`);
+  window.open("https://wa.me/?text="+msg,"_blank");
+  toast("Recordatorio enviado");
+}
+
+// ─── STOCK ────────────────────────────────────────────────────
+function poblarFiltros() {
+  const empresas=[...new Set(ST.stock.map(s=>s.empresa).filter(Boolean))].sort();
+  const puertos= [...new Set(ST.stock.map(s=>s.puerto).filter(Boolean))].sort();
+  const productos=[...new Set(ST.stock.map(s=>s.producto).filter(Boolean))].sort();
+
+  ["filtEmpresa","envFiltEmp"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    const v=el.value;
+    el.innerHTML=`<option value="">Todas</option>`+empresas.map(e=>`<option value="${e}"${e===v?" selected":""}>${e}</option>`).join("");
+  });
+  ["filtPuerto","envFiltPuerto"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    const v=el.value;
+    el.innerHTML=`<option value="">Todos</option>`+puertos.map(p=>`<option value="${p}"${p===v?" selected":""}>${p}</option>`).join("");
+  });
+  const fprod=document.getElementById("filtProducto");
+  if(fprod){const v=fprod.value;fprod.innerHTML=`<option value="">Todos</option>`+productos.map(p=>`<option value="${p}"${p===v?" selected":""}>${p}</option>`).join("");}
+
+  // Modal empresa select
+  const fEmp=document.getElementById("fEmpresa");
+  if(fEmp){fEmp.innerHTML=`<option value="">— Seleccionar —</option>`+ST.empresas.map(e=>`<option value="${e.nombre}">${e.nombre}</option>`).join("");}
+}
+
+function renderStock() {
+  const q    =document.getElementById("searchStock")?.value?.toLowerCase()||"";
+  const emp  =document.getElementById("filtEmpresa")?.value||"";
+  const puerto=document.getElementById("filtPuerto")?.value||"";
+  const prod =document.getElementById("filtProducto")?.value||"";
+
+  const data=ST.stock
+    .filter(s=>{
+      const mq=!q||[s.empresa,s.contrato,s.producto,s.puerto,s.posicion].some(v=>String(v||"").toLowerCase().includes(q));
+      return mq&&(!emp||s.empresa===emp)&&(!puerto||s.puerto===puerto)&&(!prod||s.producto===prod);
+    })
+    .sort((a,b)=>new Date(a.fechaNegocio)-new Date(b.fechaNegocio));
+
+  const totalDisp=ST.stock.reduce((a,s)=>a+saldo(s),0);
+  document.getElementById("stTotalDisp").textContent=totalDisp.toLocaleString()+" t";
+  document.getElementById("stPosiciones").textContent=ST.stock.filter(s=>saldo(s)>0).length;
+  document.getElementById("stAlertas").textContent=ST.stock.filter(s=>alertN(s.fechaRetiro)!=="ok"&&saldo(s)>0).length;
+  document.getElementById("stEmpresas").textContent=new Set(ST.stock.map(s=>s.empresa)).size;
+
+  document.getElementById("tablaStock").innerHTML=data.length===0
+    ?`<tr><td colspan="12" class="empty">Sin registros de stock</td></tr>`
+    :data.map(s=>`<tr>
+      <td>${empBadge(s.empresa)}</td>
+      <td><code>${s.contrato}</code></td>
+      <td>${s.producto}</td>
+      <td>${s.puerto}</td>
+      <td>${s.posicion||"—"}</td>
+      <td>${fmt(s.fechaNegocio)}</td>
+      <td>${fmt(s.fechaRetiro)}</td>
+      <td>${Number(s.toneladas).toLocaleString()} t</td>
+      <td>${Number(s.retirado||0).toLocaleString()} t</td>
+      <td><strong style="color:#2C703C">${saldo(s).toLocaleString()} t</strong></td>
+      <td>${alertBadge(s.fechaRetiro,true)}</td>
+      <td><div class="actions">
+        <button class="action-btn" onclick="generarURLStock('${s.id}')">🔗 Form</button>
+        <button class="action-btn red" onclick="eliminarStock('${s.id}')">✕</button>
+      </div></td>
+    </tr>`).join("");
+}
+
+function generarURLStock(id) {
+  const s=ST.stock.find(x=>x.id===id);
+  if(!s) return;
+  const nombre=prompt("Nombre del productor:");
+  if(!nombre) return;
+  const url=`${getBaseURL()}form.html?s=${id}&prod=${encodeURIComponent(nombre)}`;
+  navigator.clipboard.writeText(url).then(()=>toast("URL copiada al portapapeles ✓"));
+}
+
+function abrirModalStock() {
+  poblarFiltros();
+  document.getElementById("modalStockTitle").textContent="Nueva posición de stock";
+  ["fContrato","fToneladas","fPosicion"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("fEmpresa").value="";
+  document.getElementById("fProducto").value="Urea";
+  document.getElementById("fPuerto").value="Rosario";
+  document.getElementById("modalStock").classList.add("open");
+}
+
+async function guardarStock() {
+  const empresa   =document.getElementById("fEmpresa").value;
+  const contrato  =document.getElementById("fContrato").value.trim();
+  const toneladas =document.getElementById("fToneladas").value;
+  const fechaN    =document.getElementById("fFechaNegocio").value;
+  const fechaR    =document.getElementById("fFechaRetiro").value;
+  if(!empresa||!contrato||!toneladas||!fechaN||!fechaR){toast("Completá los campos obligatorios");return;}
+  const btn=document.getElementById("btnGuardarStock");
+  btn.disabled=true; btn.textContent="Guardando…";
+  const data={
+    empresa,contrato,
+    producto:document.getElementById("fProducto").value,
+    toneladas:+toneladas,
+    puerto:document.getElementById("fPuerto").value,
+    posicion:document.getElementById("fPosicion").value.trim(),
+    fechaNegocio:fechaN,fechaRetiro:fechaR,retirado:0,
+    id:"S"+Date.now()
+  };
+  ST.stock.push(data);
+  await apiPost({action:"addStock",data});
+  btn.disabled=false; btn.textContent="Guardar";
+  poblarFiltros();renderStock();renderAlertas();poblarRetiroStock();poblarEnviarStock();
+  cerrarModal("modalStock");toast("Stock agregado ✓");
+}
+
+async function eliminarStock(id) {
+  if(!confirm("¿Eliminar esta posición de stock?")) return;
+  ST.stock=ST.stock.filter(s=>s.id!==id);
+  await apiPost({action:"deleteStock",id});
+  renderStock();renderAlertas();poblarRetiroStock();poblarEnviarStock();toast("Posición eliminada");
+}
+
+// CSV Import
+function importarCSV(event) {
+  const file=event.target.files[0]; if(!file) return;
+  event.target.value="";
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const lines=e.target.result.trim().split("\n");
+    const headers=lines[0].split(",").map(h=>h.trim().replace(/^"|"$/g,""));
+    const get=(row,names)=>{for(const n of names){const f=headers.findIndex(h=>h.toLowerCase().replace(/[^a-z]/g,"").includes(n.toLowerCase().replace(/[^a-z]/g,"")));if(f>=0&&row[f]){return row[f].trim().replace(/^"|"$/g,"");}}return "";};
+    importBuffer=lines.slice(1).filter(l=>l.trim()).map(line=>{
+      const vals=[]; let cur="",inQ=false;
+      for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){inQ=!inQ;}else if(c===","&&!inQ){vals.push(cur);cur="";}else{cur+=c;}}
+      vals.push(cur);
+      return {
+        id:"S"+Date.now()+Math.random().toString(36).slice(2,6),
+        empresa:get(vals,["empresa"]),
+        contrato:get(vals,["contrato","contract"]),
+        producto:get(vals,["producto","product"]),
+        toneladas:+get(vals,["tonelada","ton"]),
+        puerto:get(vals,["puerto","port"]),
+        posicion:get(vals,["posicion","position","pos"]),
+        fechaNegocio:get(vals,["fechanegocio","negocio","fechan"]),
+        fechaRetiro:get(vals,["fecharetiro","retiro","fechar","vencimiento"]),
+        retirado:0,
+      };
+    }).filter(r=>r.empresa&&r.toneladas>0);
+
+    const validos=importBuffer.filter(r=>r.empresa&&r.contrato&&r.toneladas);
+    const sinFecha=importBuffer.filter(r=>!r.fechaRetiro);
+
+    document.getElementById("importStats").innerHTML=`
+      <div class="import-stat" style="background:#dcfce7;"><div class="import-stat-val" style="color:#166534">${validos.length}</div><div class="import-stat-lbl" style="color:#166534">Válidos</div></div>
+      <div class="import-stat" style="background:#fef9c3;"><div class="import-stat-val" style="color:#854d0e">${sinFecha.length}</div><div class="import-stat-lbl" style="color:#854d0e">Sin fecha retiro</div></div>
+      <div class="import-stat" style="background:#f3f4f6;"><div class="import-stat-val">${importBuffer.length}</div><div class="import-stat-lbl" style="color:#6b7280">Total filas</div></div>`;
+
+    document.getElementById("importPreview").innerHTML=`
+      <table style="width:100%;border-collapse:collapse;">
+        <thead style="background:#f9fafb;position:sticky;top:0">
+          <tr>${["Empresa","Contrato","Producto","Toneladas","Puerto","F.Negocio","F.Retiro"].map(h=>`<th style="padding:7px 10px;text-align:left;font-size:10px;color:#6b7280;border-bottom:1px solid #e5e7eb">${h}</th>`).join("")}</tr>
+        </thead>
+        <tbody>${importBuffer.slice(0,40).map((r,i)=>`
+          <tr style="background:${i%2===0?"#fff":"#f9fafb"}">
+            <td style="padding:6px 10px;font-size:12px">${r.empresa}</td>
+            <td style="padding:6px 10px;font-size:11px;font-family:monospace;color:#1d4ed8">${r.contrato}</td>
+            <td style="padding:6px 10px;font-size:12px">${r.producto}</td>
+            <td style="padding:6px 10px;font-size:12px">${r.toneladas} t</td>
+            <td style="padding:6px 10px;font-size:12px">${r.puerto}</td>
+            <td style="padding:6px 10px;font-size:11px">${r.fechaNegocio||"—"}</td>
+            <td style="padding:6px 10px;font-size:11px;color:${r.fechaRetiro?'#111':'#ef4444'}">${r.fechaRetiro||'Sin fecha'}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table>`;
+    document.getElementById("modalImport").classList.add("open");
+  };
+  reader.readAsText(file);
+}
+
+async function confirmarImport() {
+  const btn=document.getElementById("btnConfirmImport");
+  btn.disabled=true; btn.textContent="Importando…";
+  ST.stock.push(...importBuffer);
+  await apiPost({action:"addStockBulk",rows:importBuffer});
+  btn.disabled=false; btn.textContent="Confirmar importación";
+  cerrarModal("modalImport");
+  poblarFiltros();renderStock();renderAlertas();poblarRetiroStock();poblarEnviarStock();
+  toast(`${importBuffer.length} registros importados ✓`);
+  importBuffer=[];
+}
+
+// ─── ENVIAR FORMULARIO ────────────────────────────────────────
+function poblarEnviarStock() {
+  const emp  =document.getElementById("envFiltEmp")?.value||"";
+  const puerto=document.getElementById("envFiltPuerto")?.value||"";
+  const data=ST.stock
+    .filter(s=>saldo(s)>0&&(!emp||s.empresa===emp)&&(!puerto||s.puerto===puerto))
+    .sort((a,b)=>new Date(a.fechaNegocio)-new Date(b.fechaNegocio)); // FIFO
+  const sel=document.getElementById("envStock");
+  sel.innerHTML=`<option value="">— Seleccionar —</option>`+data.map(s=>{
+    const d=diasHasta(s.fechaRetiro);
+    return `<option value="${s.id}">${s.empresa} · ${s.producto} · ${saldo(s)}t · ${s.puerto} · neg: ${fmt(s.fechaNegocio)} · vence: ${fmt(s.fechaRetiro)} (${d}d)</option>`;
+  }).join("");
+  sel.onchange=mostrarEnviarPreview;
+}
+
+function mostrarEnviarPreview() {
+  const id=document.getElementById("envStock").value;
+  const box=document.getElementById("envPreview");
+  if(!id){box.style.display="none";document.getElementById("urlBox").style.display="none";return;}
+  const s=ST.stock.find(x=>x.id===id);
+  if(!s){box.style.display="none";return;}
+  box.style.display="grid";
+  box.innerHTML=[["Empresa",empBadge(s.empresa)],["Producto",s.producto],[`Saldo`,`<strong style="color:#2C703C">${saldo(s).toLocaleString()} t</strong>`],["Puerto",s.puerto],["Contrato",`<code>${s.contrato}</code>`],["F. Negocio",fmt(s.fechaNegocio)],["Vence",fmt(s.fechaRetiro)],["Estado",alertBadge(s.fechaRetiro,true)]].map(([k,v])=>`<div><div style="font-size:10px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">${k}</div><div style="font-size:13px;">${v}</div></div>`).join("");
+}
+
+function generarURL() {
+  const id=document.getElementById("envStock").value;
+  const nombre=document.getElementById("envNombre").value.trim();
+  if(!id||!nombre){toast("Completá nombre y posición");return;}
+  const url=`${getBaseURL()}form.html?s=${id}&prod=${encodeURIComponent(nombre)}`;
+  document.getElementById("urlGenerated").textContent=url;
+  document.getElementById("urlBox").style.display="block";
+}
+
+function copiarURL() {
+  const url=document.getElementById("urlGenerated").textContent;
+  navigator.clipboard.writeText(url).then(()=>toast("URL copiada ✓"));
+}
+
+function enviarWAFormulario() {
+  const id=document.getElementById("envStock").value;
+  const nombre=document.getElementById("envNombre").value.trim();
+  if(!id||!nombre){toast("Completá nombre y posición");return;}
+  const s=ST.stock.find(x=>x.id===id);
+  const url=`${getBaseURL()}form.html?s=${id}&prod=${encodeURIComponent(nombre)}`;
+  const msg=encodeURIComponent(
+`🌾 *¡Hola ${nombre}!*
+
+Gracias por tu compra en *Campo Simple Fertilizante* 🎉
+
+Te compartimos el formulario para gestionar tu retiro. Recordá gestionarlo con *mínimo 48 hs de anticipación*.
+
+📦 *Producto:* ${s.producto}
+⚖️ *Disponible:* ${saldo(s).toLocaleString()} t
+🚢 *Puerto:* ${s.puerto}
+📅 *Vence:* ${fmtLong(s.fechaRetiro)}
+
+👇 *Completá el formulario:*
+${url}
+
+_Campo Simple Fertilizante_`);
+  window.open("https://wa.me/?text="+msg,"_blank");
+  toast("Abriendo WhatsApp…");
+}
+
+// ─── PEDIDOS ──────────────────────────────────────────────────
+function renderPedidos() {
+  const q=document.getElementById("searchPedidos")?.value?.toLowerCase()||"";
+  const data=ST.pedidos.filter(p=>{
+    return !q||[p.productor,p.patente,p.chofer,p.transportista].some(v=>String(v||"").toLowerCase().includes(q));
+  });
+  const badge=document.getElementById("badgePedidos");
+  badge.textContent=ST.pedidos.length;
+  badge.style.display=ST.pedidos.length?"":"none";
+
+  document.getElementById("tablaPedidos").innerHTML=data.length===0
+    ?`<tr><td colspan="10" class="empty">Sin pedidos recibidos todavía</td></tr>`
+    :data.map(p=>{
+      const s=ST.stock.find(x=>x.id===p.stockId);
+      return `<tr>
+        <td><code>${p.id}</code></td>
+        <td>${s?`${empBadge(s.empresa)} ${s.producto} ${s.puerto}`:"—"}</td>
+        <td><strong>${p.productor}</strong></td>
+        <td>${Number(p.toneladas||0).toLocaleString()} t</td>
+        <td>${fmt(p.fechaRetiro)}</td>
+        <td><code>${p.patente||"—"}</code>${p.acoplado?` / <code>${p.acoplado}</code>`:""}</td>
+        <td>${p.transportista||"—"}</td>
+        <td>${p.chofer||"—"}</td>
+        <td>${p.dni||"—"}</td>
+        <td>${fmt(p.fechaCreacion)}</td>
+      </tr>`;
+    }).join("");
+}
+
+function exportCSVPedidos() {
+  const h=["ID","StockID","Productor","Toneladas","FechaRetiro","Patente","Acoplado","Transportista","Seguro","VtoSeguro","Hab","VtoHab","Chofer","DNI","Licencia","VtoLic","Tel","Obs","FechaCreacion"];
+  const rows=ST.pedidos.map(p=>h.map(k=>`"${String(p[k.toLowerCase()]||p[k]||"").replace(/"/g,'""')}"`));
+  const csv=[h.join(","),...rows.map(r=>r.join(","))].join("\n");
+  const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);a.download="pedidos.csv";a.click();
+  toast("CSV exportado");
+}
+
+// ─── RETIRO ───────────────────────────────────────────────────
+function poblarRetiroStock() {
+  const data=ST.stock.filter(s=>saldo(s)>0).sort((a,b)=>new Date(a.fechaNegocio)-new Date(b.fechaNegocio));
+  const sel=document.getElementById("retStock");
+  sel.innerHTML=`<option value="">— Seleccionar —</option>`+data.map(s=>`<option value="${s.id}">${s.empresa} · ${s.producto} · ${saldo(s)}t · ${s.puerto} · ${s.contrato}</option>`).join("");
+  sel.onchange=mostrarRetiroPreview;
+}
+
+function mostrarRetiroPreview() {
+  const id=document.getElementById("retStock").value;
+  const box=document.getElementById("retPreview");
+  const lbl=document.getElementById("retTonLabel");
+  if(!id){box.style.display="none";return;}
+  const s=ST.stock.find(x=>x.id===id);
+  if(!s){box.style.display="none";return;}
+  box.style.display="grid";
+  const sal=saldo(s);
+  lbl.textContent=`Toneladas a retirar * (máx ${sal.toLocaleString()} t)`;
+  box.innerHTML=[["Empresa",empBadge(s.empresa)],["Producto",s.producto],["Saldo",`<strong style="color:#2C703C">${sal.toLocaleString()} t</strong>`],["Puerto",s.puerto]].map(([k,v])=>`<div><div style="font-size:10px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">${k}</div><div style="font-size:13px;">${v}</div></div>`).join("");
+}
+
+async function registrarRetiro() {
+  const id=document.getElementById("retStock").value;
+  const nombre=document.getElementById("retNombre").value.trim();
+  const tons=+document.getElementById("retToneladas").value;
+  if(!id||!nombre||!tons){toast("Completá todos los campos");return;}
+  const s=ST.stock.find(x=>x.id===id);
+  if(!s){toast("Stock no encontrado");return;}
+  const sal=saldo(s);
+  if(tons>sal){toast(`Máximo disponible: ${sal} t`);return;}
+
+  // Actualizar local
+  s.retirado=(Number(s.retirado||0)+tons);
+  // Guardar en Sheets
+  await apiPost({action:"registrarRetiro",stockId:id,productor:nombre,toneladas:tons});
+
+  retiroDone={nombre,stock:{...s},tons};
+  renderRetiroSuccess();
+  renderStock();renderAlertas();poblarRetiroStock();
+}
+
+function renderRetiroSuccess() {
+  const {nombre,stock:s,tons}=retiroDone;
+  const sal=saldo(s);
+  document.getElementById("retiroDescripcion").textContent=`Se retiraron ${tons} t de ${s.producto}. Stock actualizado.`;
+  document.getElementById("retiroSaldoBox").innerHTML=[
+    ["Saldo restante",`<span style="font-size:18px;font-weight:800;color:#2C703C">${sal.toLocaleString()} t</span>`],
+    ["Producto",s.producto],
+    ["Vence",fmt(s.fechaRetiro)],
+  ].map(([k,v])=>`<div style="text-align:center;background:#fff;border-radius:8px;padding:10px"><div style="font-size:10px;font-weight:600;color:#6b7280;text-transform:uppercase;margin-bottom:4px">${k}</div><div>${v}</div></div>`).join("");
+
+  document.getElementById("btnConfirmWA").onclick=()=>{
+    const url=`${getBaseURL()}saldo.html?s=${s.id}`;
+    const msg=encodeURIComponent(
+`✅ *Retiro registrado · Campo Simple Fertilizante*
+
+Hola *${nombre}*, gracias por confiar en nosotros.
+
+Se registró el retiro de *${tons.toLocaleString()} t* de *${s.producto}*.
+
+📊 *Tu saldo actualizado:*
+📦 ${s.producto} — *${sal.toLocaleString()} t* restantes
+🚢 Puerto: ${s.puerto}
+📅 Tenés tiempo hasta el *${fmtLong(s.fechaRetiro)}*
+
+🔗 Ver tu saldo actualizado:
+${url}
+
+_Campo Simple Fertilizante_`);
+    window.open("https://wa.me/?text="+msg,"_blank");
+    toast("Confirmación enviada");
+  };
+
+  document.getElementById("btnVerSaldo").onclick=()=>window.open(`${getBaseURL()}saldo.html?s=${s.id}`,"_blank");
+
+  document.getElementById("retiroSuccess").style.display="block";
+  document.getElementById("retiroForm").style.display="none";
+}
+
+function resetRetiro() {
+  retiroDone=null;
+  document.getElementById("retiroSuccess").style.display="none";
+  document.getElementById("retiroForm").style.display="block";
+  document.getElementById("retNombre").value="";
+  document.getElementById("retToneladas").value="";
+  document.getElementById("retStock").value="";
+  document.getElementById("retPreview").style.display="none";
+}
+
+// ─── CONFIGURACIÓN ────────────────────────────────────────────
+function renderSwatches() {
+  const colorActual=document.getElementById("empColor").value;
+  document.getElementById("swatches").innerHTML=PALETA.map(c=>`<div class="swatch${c===colorActual?" selected":""}" style="background:${c}" onclick="selColor('${c}')"></div>`).join("");
+}
+function selColor(c) {
+  document.getElementById("empColor").value=c;
+  document.querySelectorAll(".swatch").forEach(s=>s.classList.toggle("selected",s.style.background===c||s.style.backgroundColor===c));
+}
+
+async function agregarEmpresa() {
+  const nombre=document.getElementById("empNombre").value.trim();
+  const color=document.getElementById("empColor").value;
+  if(!nombre){toast("Ingresá un nombre");return;}
+  if(ST.empresas.find(e=>e.nombre.toLowerCase()===nombre.toLowerCase())){toast("Esa empresa ya existe");return;}
+  const data={id:"E"+Date.now(),nombre,color};
+  ST.empresas.push(data);
+  await apiPost({action:"addEmpresa",data});
+  document.getElementById("empNombre").value="";
+  renderEmpresas();poblarFiltros();
+  toast(`Empresa "${nombre}" agregada ✓`);
+}
+
+async function eliminarEmpresa(id) {
+  const e=ST.empresas.find(x=>x.id===id);
+  if(!confirm(`¿Eliminar empresa "${e?.nombre}"?`)) return;
+  ST.empresas=ST.empresas.filter(x=>x.id!==id);
+  await apiPost({action:"deleteEmpresa",id});
+  renderEmpresas();poblarFiltros();toast("Empresa eliminada");
+}
+
+function renderEmpresas() {
+  document.getElementById("listaEmpresas").innerHTML=ST.empresas.length===0
+    ?`<div class="empty" style="padding:24px 0">No hay empresas. Agregá la primera arriba.</div>`
+    :`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">${
+      ST.empresas.map(e=>`<div style="display:flex;align-items:center;gap:10px;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;background:#fff;">
+        <div style="width:12px;height:12px;border-radius:50%;background:${e.color};flex-shrink:0"></div>
+        <div style="flex:1;font-weight:600;font-size:13px">${e.nombre}</div>
+        <span style="font-size:11px;font-weight:700;background:${e.color}18;color:${e.color};padding:2px 7px;border-radius:4px">${e.nombre}</span>
+        <button class="action-btn red" onclick="eliminarEmpresa('${e.id}')">✕</button>
+      </div>`).join("")
+    }</div>`;
+}
+
+function guardarConfig() {
+  const wa=document.getElementById("configWA").value.trim();
+  const baseURL=document.getElementById("configBaseURL").value.trim();
+  saveCfg({wa,baseURL});
+  toast("Configuración guardada ✓");
+}
+
+// ─── EXPORT STOCK CSV ─────────────────────────────────────────
+function exportCSV() {
+  const h=["id","empresa","contrato","producto","toneladas","puerto","posicion","fechaNegocio","fechaRetiro","retirado"];
+  const rows=ST.stock.map(s=>h.map(k=>`"${String(s[k]||"").replace(/"/g,'""')}"`));
+  const csv=[h.join(","),...rows.map(r=>r.join(","))].join("\n");
+  const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);a.download="stock_fertilizante.csv";a.click();
+  toast("CSV exportado");
+}
+
+// ─── MODAL ────────────────────────────────────────────────────
+function cerrarModal(id) { document.getElementById(id).classList.remove("open"); }
+function cerrarSiFuera(e,id) { if(e.target===document.getElementById(id)) cerrarModal(id); }
+
+// ─── INIT ─────────────────────────────────────────────────────
+cargarDatos();
+</script>
+</body>
+</html>
